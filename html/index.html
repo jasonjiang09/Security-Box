@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html>
+<head>
+   <title></title>
+   <style>
+      @import url('https://fonts.googleapis.com/css?family=Comfortaa');
+
+      video {
+         width: 50%;
+         margin: 50px auto;
+         box-shadow: 0 0 10px #0007;
+         border-radius: 10px;
+         display: block;
+         border: 2px solid rgba(214,87,69, 0);
+      }
+
+      .Jason, .Tanner, .enviroment {
+         width: 7%;
+         display: block;
+         margin: 0 auto;
+         font-family: 'Comfortaa', cursive;
+         text-align: center;
+         display: none;
+      }
+
+      .Jason.text, .Tanner.text, .enviroment.text {
+         width: 100%;
+         font-size: 35px;
+         border: none;
+      }
+
+      .Tanner {
+         color: rgb(214,87,69);
+         text-shadow: 0 2px rgb(190,60,50);
+      }
+
+      .Jason {
+         color: rgb(101,200,122);
+         text-shadow: 0 2px rgb(80,180,100);
+      }
+
+      .enviroment {
+         color: rgb(28,171,232);
+         text-shadow: 0 2px rgb(28,171,232);
+      }
+
+      h1 {
+         font-family: 'Comfortaa', cursive;
+         text-align: center;
+         font-size: 50px;
+      }
+   </style>
+</head>
+<body>
+   <h1>Security Box Current Status</h1>
+   <video id='webcam' class='video-box' autoplay='true'></video>
+   <img src="http://icons.iconarchive.com/icons/paomedia/small-n-flat/1024/sign-check-icon.png" alt="" class='Jason'>
+   <p class="Jason text">Jason is here! I must open up for him!</p>
+   <img src="http://icons.iconarchive.com/icons/paomedia/small-n-flat/1024/sign-error-icon.png" alt="" class='Tanner'>
+   <p class="Tanner text">Get out Tanner! You're not Jason!</p>
+   <img src="http://icons.iconarchive.com/icons/saki/nuoveXT/128/Apps-clock-icon.png" alt="" class='enviroment'>
+   <p class="enviroment text">Nothing's happening</p>
+   <div id="thumbnailContainer"></div>
+   <canvas id="canvas" style='display: hidden; opacity: 0; width: 0; height: 0;'></canvas>
+   <script src='https://cdn.WebRTC-Experiment.com/RecordRTC.js'></script>
+   <script
+      src="https://code.jquery.com/jquery-3.3.1.min.js"
+      integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8="
+      crossorigin="anonymous"></script>
+   <script>
+      // picture code
+
+      let webcam = document.querySelector('#webcam');
+      this.loadedPreview = true;
+      if (navigator.mediaDevices.getUserMedia) {       
+         navigator.mediaDevices.getUserMedia({video: true})
+            .then(function(stream) {
+               webcam.srcObject = stream;
+            })
+            .catch(function(err) {
+               console.log('Something went wrong!');
+               console.log(err);
+            });
+      }
+
+      let video = document.getElementById('webcam');
+      let thecanvas = document.getElementById('canvas');
+      let message = document.getElementById('message');
+
+
+      var interval = setInterval(function() {
+         generateThumbnail();
+      }, 500);
+
+      function generateThumbnail() {     
+         //generate thumbnail URL data
+         var context = thecanvas.getContext('2d');
+         context.drawImage(video, 0, 0, 220, 150);
+         var dataURL = thecanvas.toDataURL();
+
+         // // create img
+         //  var img = document.createElement('img');
+         //  img.setAttribute('src', dataURL);
+
+         //  //append img in container div
+         //  document.getElementById('thumbnailContainer').appendChild(img);
+
+         $.post('http://localhost:9876/image/', {image: dataURL}).done(function (res) {
+            res = JSON.parse(res);
+            //console.log(res.uploaded)
+            if (res.uploaded) {
+               var type = res.classification;
+               console.log(res);
+               if (type == 'Jason') {
+                  $('.Jason').css('display', 'block');
+                  $('.Tanner').css('display', 'none');
+                  $('.enviroment').css('display', 'none');
+                  $('video').css('border-color', 'rgb(101,200,122)');
+               } else if (type == 'Tanner') {
+                  $('.Jason').css('display', 'none');
+                  $('.Tanner').css('display', 'block');
+                  $('.enviroment').css('display', 'none');
+                  $('video').css('border-color', 'rgb(214,87,69)');
+               } else if (type == 'enviroment') {
+                  $('.Jason').css('display', 'none');
+                  $('.Tanner').css('display', 'none');
+                  $('.enviroment').css('display', 'block');
+                  $('video').css('border-color', 'rgb(28,171,232)');
+               }
+               else {
+                  $('.Jason').css('display', 'none');
+                  $('.Tanner').css('display', 'none');
+                  $('.enviroment').css('display', 'none');
+                  $('video').css('border-color', 'rgb(214,87,69,0)');
+               }
+            }
+         });
+      }
+   </script>
+</body>
+</html>
